@@ -23,16 +23,17 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
     fileprivate var interactionController: UIPercentDrivenInteractiveTransition?
 
     /// Enables or disables swipe-to-dismiss interactive transition
-    open var slideToDismissEnabled: Bool = true
+    open var dismissMode: FullScreenSlideshowViewController.DismissMode
 
     /**
         Init the transitioning delegate with a source ImageSlideshow
         - parameter slideshowView: ImageSlideshow instance to animate the transition from
         - parameter slideshowController: FullScreenViewController instance to animate the transition to
      */
-    public init(slideshowView: ImageSlideshow, slideshowController: FullScreenSlideshowViewController) {
+    public init(slideshowView: ImageSlideshow, slideshowController: FullScreenSlideshowViewController, dismissMode: FullScreenSlideshowViewController.DismissMode) {
         self.referenceSlideshowView = slideshowView
         self.referenceSlideshowController = slideshowController
+        self.dismissMode = dismissMode
 
         super.init()
 
@@ -44,9 +45,10 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
         - parameter imageView: UIImageView instance to animate the transition from
         - parameter slideshowController: FullScreenViewController instance to animate the transition to
      */
-    public init(imageView: UIImageView, slideshowController: FullScreenSlideshowViewController) {
+    public init(imageView: UIImageView, slideshowController: FullScreenSlideshowViewController, dismissMode: FullScreenSlideshowViewController.DismissMode) {
         self.referenceImageView = imageView
         self.referenceSlideshowController = slideshowController
+        self.dismissMode = dismissMode
 
         super.init()
 
@@ -131,7 +133,7 @@ extension ZoomAnimatedTransitioningDelegate: UIGestureRecognizerDelegate {
             return false
         }
 
-        if !slideToDismissEnabled {
+        if dismissMode == .disabled {
             return false
         }
 
@@ -141,7 +143,17 @@ extension ZoomAnimatedTransitioningDelegate: UIGestureRecognizerDelegate {
 
         if let view = gestureRecognizer.view {
             let velocity = gestureRecognizer.velocity(in: view)
-            return fabs(velocity.x) < fabs(velocity.y)
+            
+            switch dismissMode {
+            case .swipe:
+                return fabs(velocity.x) < fabs(velocity.y)
+            case .swipeUp:
+                return fabs(velocity.x) < fabs(velocity.y) && velocity.y < 0
+            case .swipeDown:
+                return fabs(velocity.x) < fabs(velocity.y) && velocity.y > 0
+            case .disabled:
+                break
+            }
         }
 
         return true
