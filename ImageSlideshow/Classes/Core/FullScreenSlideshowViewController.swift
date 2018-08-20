@@ -9,6 +9,10 @@ import UIKit
 
 @objcMembers
 open class FullScreenSlideshowViewController: UIViewController {
+    
+    public enum DismissMode {
+        case swipeUp, swipeDown, swipe, disabled
+    }
 
     open var slideshow: ImageSlideshow = {
         let slideshow = ImageSlideshow()
