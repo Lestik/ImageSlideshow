@@ -10,6 +10,11 @@ import UIKit
 
 @objcMembers
 open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
+    
+    private enum SwipeDirection {
+        case down, up
+    }
+    
     /// parent image view used for animated transition
     open var referenceImageView: UIImageView?
     /// parent slideshow view used for animated transition
@@ -22,17 +27,20 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
     var gestureRecognizer: UIPanGestureRecognizer!
     fileprivate var interactionController: UIPercentDrivenInteractiveTransition?
 
-    /// Enables or disables swipe-to-dismiss interactive transition
-    open var slideToDismissEnabled: Bool = true
+    /// Swipe-to-dismiss interactive transition mode.
+    open var dismissMode: FullScreenSlideshowViewController.DismissMode
+    
+    private var swipeDirection = SwipeDirection.up
 
     /**
         Init the transitioning delegate with a source ImageSlideshow
         - parameter slideshowView: ImageSlideshow instance to animate the transition from
         - parameter slideshowController: FullScreenViewController instance to animate the transition to
      */
-    public init(slideshowView: ImageSlideshow, slideshowController: FullScreenSlideshowViewController) {
+    public init(slideshowView: ImageSlideshow, slideshowController: FullScreenSlideshowViewController, dismissMode: FullScreenSlideshowViewController.DismissMode) {
         self.referenceSlideshowView = slideshowView
         self.referenceSlideshowController = slideshowController
+        self.dismissMode = dismissMode
 
         super.init()
 
@@ -44,9 +52,10 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
         - parameter imageView: UIImageView instance to animate the transition from
         - parameter slideshowController: FullScreenViewController instance to animate the transition to
      */
-    public init(imageView: UIImageView, slideshowController: FullScreenSlideshowViewController) {
+    public init(imageView: UIImageView, slideshowController: FullScreenSlideshowViewController, dismissMode: FullScreenSlideshowViewController.DismissMode) {
         self.referenceImageView = imageView
         self.referenceSlideshowController = slideshowController
+        self.dismissMode = dismissMode
 
         super.init()
 
@@ -62,37 +71,47 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
     }
 
     @objc func handleSwipe(_ gesture: UIPanGestureRecognizer) {
-        guard let referenceSlideshowController = referenceSlideshowController else {
-            return
+        guard let referenceSlideshowController = referenceSlideshowController else { return }
+        guard let gestureView = gesture.view else { assertionFailure("Gesture view is `nil`"); return }
+        
+        let percent: CGFloat
+        let velocityY: CGFloat
+        let gestureViewYTranslation = gesture.translation(in: gestureView).y
+        let referenceSlideshowViewYVelocity = gesture.velocity(in: referenceSlideshowView).y
+        switch (dismissMode, swipeDirection) {
+        case (.onSwipeUp, _), (.onSwipe, .up):
+            percent = min(max(gestureViewYTranslation / -200.0, 0.0), 1.0)
+            velocityY = referenceSlideshowViewYVelocity * -1
+        case (.onSwipeDown, _), (.onSwipe, .down):
+            percent = min(max(gestureViewYTranslation / 200.0, 0.0), 1.0)
+            velocityY = referenceSlideshowViewYVelocity
+        case (.disabled, _):
+            assertionFailure("Swipe should not be initiated in disabled mode")
+            percent = 0
+            velocityY = 0
         }
-
-        let percent = min(max(fabs(gesture.translation(in: gesture.view!).y) / 200.0, 0.0), 1.0)
-
-        if gesture.state == .began {
+        
+        switch gesture.state {
+        case .began:
+            swipeDirection = (gesture.velocity(in: referenceSlideshowView).y > 0) ? .down : .up
             interactionController = UIPercentDrivenInteractiveTransition()
             referenceSlideshowController.dismiss(animated: true, completion: nil)
-        } else if gesture.state == .changed {
+        case .changed:
             interactionController?.update(percent)
-        } else if gesture.state == .ended || gesture.state == .cancelled || gesture.state == .failed {
-            let velocity = gesture.velocity(in: referenceSlideshowView)
-
-            if fabs(velocity.y) > 500 {
+        case .ended, .cancelled, .failed:
+            if velocityY > 500 || percent > 0.75 {
                 if let pageSelected = referenceSlideshowController.pageSelected {
                     pageSelected(referenceSlideshowController.slideshow.currentPage)
                 }
-
-                interactionController?.finish()
-            } else if percent > 0.5 {
-                if let pageSelected = referenceSlideshowController.pageSelected {
-                    pageSelected(referenceSlideshowController.slideshow.currentPage)
-                }
-
+                
                 interactionController?.finish()
             } else {
                 interactionController?.cancel()
             }
-
+            
             interactionController = nil
+        default:
+            break
         }
     }
 
@@ -131,7 +150,7 @@ extension ZoomAnimatedTransitioningDelegate: UIGestureRecognizerDelegate {
             return false
         }
 
-        if !slideToDismissEnabled {
+        if dismissMode == .disabled {
             return false
         }
 
@@ -141,7 +160,17 @@ extension ZoomAnimatedTransitioningDelegate: UIGestureRecognizerDelegate {
 
         if let view = gestureRecognizer.view {
             let velocity = gestureRecognizer.velocity(in: view)
-            return fabs(velocity.x) < fabs(velocity.y)
+            
+            switch dismissMode {
+            case .onSwipe:
+                return fabs(velocity.x) < fabs(velocity.y)
+            case .onSwipeUp:
+                return fabs(velocity.x) < fabs(velocity.y) && velocity.y < 0
+            case .onSwipeDown:
+                return fabs(velocity.x) < fabs(velocity.y) && velocity.y > 0
+            case .disabled:
+                break
+            }
         }
 
         return true

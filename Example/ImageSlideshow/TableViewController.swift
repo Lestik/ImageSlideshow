@@ -51,7 +51,7 @@ class TableViewController: UITableViewController {
         fullScreenController.initialPage = indexPath.row
 
         if let cell = tableView.cellForRow(at: indexPath), let imageView = cell.imageView {
-            slideshowTransitioningDelegate = ZoomAnimatedTransitioningDelegate(imageView: imageView, slideshowController: fullScreenController)
+            slideshowTransitioningDelegate = ZoomAnimatedTransitioningDelegate(imageView: imageView, slideshowController: fullScreenController, dismissMode: .onSwipe)
             fullScreenController.transitioningDelegate = slideshowTransitioningDelegate
         }
 

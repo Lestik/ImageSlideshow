@@ -30,6 +30,17 @@ public enum ImagePreload {
     case all
 }
 
+@objcMembers
+open class ImageSlideshowViewController: UIViewController {
+    
+    open var slideshowView = ImageSlideshow()
+    
+    open override func loadView() {
+        view = slideshowView
+    }
+    
+}
+
 /// Main view containing the Image Slideshow
 @objcMembers
 open class ImageSlideshow: UIView {
@@ -462,7 +473,7 @@ open class ImageSlideshow: UIView {
      - returns: FullScreenSlideshowViewController instance
      */
     @discardableResult
-    open func presentFullScreenController(from controller: UIViewController) -> FullScreenSlideshowViewController {
+    open func presentFullScreenController(from controller: UIViewController, dismissMode: FullScreenSlideshowViewController.DismissMode) -> FullScreenSlideshowViewController {
         let fullscreen = FullScreenSlideshowViewController()
         fullscreen.pageSelected = {[weak self] (page: Int) in
             self?.setCurrentPage(page, animated: false)
@@ -470,7 +481,7 @@ open class ImageSlideshow: UIView {
 
         fullscreen.initialPage = currentPage
         fullscreen.inputs = images
-        slideshowTransitioningDelegate = ZoomAnimatedTransitioningDelegate(slideshowView: self, slideshowController: fullscreen)
+        slideshowTransitioningDelegate = ZoomAnimatedTransitioningDelegate(slideshowView: self, slideshowController: fullscreen, dismissMode: dismissMode)
         fullscreen.transitioningDelegate = slideshowTransitioningDelegate
         controller.present(fullscreen, animated: true, completion: nil)
 
