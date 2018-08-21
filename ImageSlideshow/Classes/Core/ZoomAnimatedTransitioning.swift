@@ -27,7 +27,7 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
     var gestureRecognizer: UIPanGestureRecognizer!
     fileprivate var interactionController: UIPercentDrivenInteractiveTransition?
 
-    /// Enables or disables swipe-to-dismiss interactive transition
+    /// Swipe-to-dismiss interactive transition mode.
     open var dismissMode: FullScreenSlideshowViewController.DismissMode
     
     private var swipeDirection = SwipeDirection.up
@@ -71,67 +71,47 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
     }
 
     @objc func handleSwipe(_ gesture: UIPanGestureRecognizer) {
-        guard let referenceSlideshowController = referenceSlideshowController else {
-            return
-        }
+        guard let referenceSlideshowController = referenceSlideshowController else { return }
+        guard let gestureView = gesture.view else { assertionFailure("Gesture view is `nil`"); return }
         
         let percent: CGFloat
-        switch dismissMode {
-        case .swipeUp:
-            percent = min(max(gesture.translation(in: gesture.view!).y / -200.0, 0.0), 1.0)
-        case .swipeDown:
-            percent = min(max(gesture.translation(in: gesture.view!).y / 200.0, 0.0), 1.0)
-        case .swipe:
-            switch swipeDirection {
-            case .up:
-                percent = min(max(gesture.translation(in: gesture.view!).y / -200.0, 0.0), 1.0)
-            case .down:
-                percent = min(max(gesture.translation(in: gesture.view!).y / 200.0, 0.0), 1.0)
-            }
-        case .disabled:
+        let velocityY: CGFloat
+        let gestureViewYTranslation = gesture.translation(in: gestureView).y
+        let referenceSlideshowViewYVelocity = gesture.velocity(in: referenceSlideshowView).y
+        switch (dismissMode, swipeDirection) {
+        case (.swipeUp, _), (.swipe, .up):
+            percent = min(max(gestureViewYTranslation / -200.0, 0.0), 1.0)
+            velocityY = referenceSlideshowViewYVelocity * -1
+        case (.swipeDown, _), (.swipe, .down):
+            percent = min(max(gestureViewYTranslation / 200.0, 0.0), 1.0)
+            velocityY = referenceSlideshowViewYVelocity
+        case (.disabled, _):
+            assertionFailure("Swipe should not be initiated in disabled mode")
             percent = 0
+            velocityY = 0
         }
-
-        if gesture.state == .began {
+        
+        switch gesture.state {
+        case .began:
             swipeDirection = (gesture.velocity(in: referenceSlideshowView).y > 0) ? .down : .up
             interactionController = UIPercentDrivenInteractiveTransition()
             referenceSlideshowController.dismiss(animated: true, completion: nil)
-        } else if gesture.state == .changed {
+        case .changed:
             interactionController?.update(percent)
-        } else if gesture.state == .ended || gesture.state == .cancelled || gesture.state == .failed {
-            let velocityY: CGFloat
-            switch dismissMode {
-            case .swipeDown:
-                velocityY = gesture.velocity(in: referenceSlideshowView).y
-            case .swipeUp:
-                velocityY = gesture.velocity(in: referenceSlideshowView).y * -1
-            case .swipe:
-                switch swipeDirection {
-                case .down:
-                    velocityY = gesture.velocity(in: referenceSlideshowView).y
-                case .up:
-                    velocityY = gesture.velocity(in: referenceSlideshowView).y * -1
-                }
-            case .disabled:
-                velocityY = 0
-            }
-            if velocityY > 500 {
+        case .ended, .cancelled, .failed:
+            if velocityY > 500 || percent > 0.75 {
                 if let pageSelected = referenceSlideshowController.pageSelected {
                     pageSelected(referenceSlideshowController.slideshow.currentPage)
                 }
                 
                 interactionController?.finish()
-            } else if percent > 0.75 {
-                if let pageSelected = referenceSlideshowController.pageSelected {
-                    pageSelected(referenceSlideshowController.slideshow.currentPage)
-                }
-
-                interactionController?.finish()
             } else {
                 interactionController?.cancel()
             }
-
+            
             interactionController = nil
+        default:
+            break
         }
     }
 
