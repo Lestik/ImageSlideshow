@@ -10,6 +10,11 @@ import UIKit
 
 @objcMembers
 open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
+    
+    private enum SwipeDirection {
+        case down, up
+    }
+    
     /// parent image view used for animated transition
     open var referenceImageView: UIImageView?
     /// parent slideshow view used for animated transition
@@ -24,6 +29,8 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
 
     /// Enables or disables swipe-to-dismiss interactive transition
     open var dismissMode: FullScreenSlideshowViewController.DismissMode
+    
+    private var swipeDirection = SwipeDirection.up
 
     /**
         Init the transitioning delegate with a source ImageSlideshow
@@ -67,24 +74,54 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
         guard let referenceSlideshowController = referenceSlideshowController else {
             return
         }
-
-        let percent = min(max(fabs(gesture.translation(in: gesture.view!).y) / 200.0, 0.0), 1.0)
+        
+        let percent: CGFloat
+        switch dismissMode {
+        case .swipeUp:
+            percent = min(max(gesture.translation(in: gesture.view!).y / -200.0, 0.0), 1.0)
+        case .swipeDown:
+            percent = min(max(gesture.translation(in: gesture.view!).y / 200.0, 0.0), 1.0)
+        case .swipe:
+            switch swipeDirection {
+            case .up:
+                percent = min(max(gesture.translation(in: gesture.view!).y / -200.0, 0.0), 1.0)
+            case .down:
+                percent = min(max(gesture.translation(in: gesture.view!).y / 200.0, 0.0), 1.0)
+            }
+        case .disabled:
+            percent = 0
+        }
 
         if gesture.state == .began {
+            swipeDirection = (gesture.velocity(in: referenceSlideshowView).y > 0) ? .down : .up
             interactionController = UIPercentDrivenInteractiveTransition()
             referenceSlideshowController.dismiss(animated: true, completion: nil)
         } else if gesture.state == .changed {
             interactionController?.update(percent)
         } else if gesture.state == .ended || gesture.state == .cancelled || gesture.state == .failed {
-            let velocity = gesture.velocity(in: referenceSlideshowView)
-
-            if fabs(velocity.y) > 500 {
+            let velocityY: CGFloat
+            switch dismissMode {
+            case .swipeDown:
+                velocityY = gesture.velocity(in: referenceSlideshowView).y
+            case .swipeUp:
+                velocityY = gesture.velocity(in: referenceSlideshowView).y * -1
+            case .swipe:
+                switch swipeDirection {
+                case .down:
+                    velocityY = gesture.velocity(in: referenceSlideshowView).y
+                case .up:
+                    velocityY = gesture.velocity(in: referenceSlideshowView).y * -1
+                }
+            case .disabled:
+                velocityY = 0
+            }
+            if velocityY > 500 {
                 if let pageSelected = referenceSlideshowController.pageSelected {
                     pageSelected(referenceSlideshowController.slideshow.currentPage)
                 }
-
+                
                 interactionController?.finish()
-            } else if percent > 0.5 {
+            } else if percent > 0.75 {
                 if let pageSelected = referenceSlideshowController.pageSelected {
                     pageSelected(referenceSlideshowController.slideshow.currentPage)
                 }
