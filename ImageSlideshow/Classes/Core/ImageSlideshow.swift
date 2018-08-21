@@ -30,6 +30,17 @@ public enum ImagePreload {
     case all
 }
 
+@objcMembers
+open class ImageSlideshowViewController: UIViewController {
+    
+    open var slideshowView = ImageSlideshow()
+    
+    open override func loadView() {
+        view = slideshowView
+    }
+    
+}
+
 /// Main view containing the Image Slideshow
 @objcMembers
 open class ImageSlideshow: UIView {
