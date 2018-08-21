@@ -79,10 +79,10 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
         let gestureViewYTranslation = gesture.translation(in: gestureView).y
         let referenceSlideshowViewYVelocity = gesture.velocity(in: referenceSlideshowView).y
         switch (dismissMode, swipeDirection) {
-        case (.swipeUp, _), (.swipe, .up):
+        case (.onSwipeUp, _), (.onSwipe, .up):
             percent = min(max(gestureViewYTranslation / -200.0, 0.0), 1.0)
             velocityY = referenceSlideshowViewYVelocity * -1
-        case (.swipeDown, _), (.swipe, .down):
+        case (.onSwipeDown, _), (.onSwipe, .down):
             percent = min(max(gestureViewYTranslation / 200.0, 0.0), 1.0)
             velocityY = referenceSlideshowViewYVelocity
         case (.disabled, _):
@@ -162,11 +162,11 @@ extension ZoomAnimatedTransitioningDelegate: UIGestureRecognizerDelegate {
             let velocity = gestureRecognizer.velocity(in: view)
             
             switch dismissMode {
-            case .swipe:
+            case .onSwipe:
                 return fabs(velocity.x) < fabs(velocity.y)
-            case .swipeUp:
+            case .onSwipeUp:
                 return fabs(velocity.x) < fabs(velocity.y) && velocity.y < 0
-            case .swipeDown:
+            case .onSwipeDown:
                 return fabs(velocity.x) < fabs(velocity.y) && velocity.y > 0
             case .disabled:
                 break
