@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14113" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES" initialViewController="jSV-c3-hu2">
-    <device id="retina4_7" orientation="portrait">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15705" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES" initialViewController="jSV-c3-hu2">
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15706"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -26,7 +24,7 @@
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="EDh-rt-MM7" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-865" y="157"/>
+            <point key="canvasLocation" x="-1253.6231884057972" y="105.13392857142857"/>
         </scene>
         <!--TableView-->
         <scene sceneID="bbA-cr-xPo">
@@ -41,11 +39,11 @@
                                 <rect key="frame" x="0.0" y="28" width="375" height="100"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="CmE-Ih-6iZ" id="rN2-1L-CiZ">
-                                    <rect key="frame" x="0.0" y="0.0" width="375" height="99.5"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="100"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" insetsLayoutMarginsFromSafeArea="NO" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="yz8-QO-hsL">
-                                            <rect key="frame" x="16" y="0.0" width="343" height="99.5"/>
+                                            <rect key="frame" x="16" y="0.0" width="343" height="100"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                             <nil key="textColor"/>
@@ -64,15 +62,15 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="GoS-G9-pmD" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-277" y="619"/>
+            <point key="canvasLocation" x="-401.44927536231887" y="414.50892857142856"/>
         </scene>
         <!--Container-->
         <scene sceneID="f7t-cf-Rbz">
             <objects>
                 <viewController id="xtT-FM-yC2" sceneMemberID="viewController">
                     <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="5pd-V7-c2D"/>
-                        <viewControllerLayoutGuide type="bottom" id="98K-pq-9i5"/>
+                        <viewControllerLayoutGuide type="top" id="qBQ-bY-Ktx"/>
+                        <viewControllerLayoutGuide type="bottom" id="LGB-MZ-AAN"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="3uF-qa-QYn">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
@@ -90,8 +88,8 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
+                            <constraint firstItem="f1d-gM-6T5" firstAttribute="top" secondItem="qBQ-bY-Ktx" secondAttribute="bottom" constant="20" id="0AD-LI-69p"/>
                             <constraint firstAttribute="trailing" secondItem="f1d-gM-6T5" secondAttribute="trailing" id="BPr-LF-25t"/>
-                            <constraint firstItem="f1d-gM-6T5" firstAttribute="top" secondItem="5pd-V7-c2D" secondAttribute="bottom" id="p5e-7d-upS"/>
                             <constraint firstItem="f1d-gM-6T5" firstAttribute="leading" secondItem="3uF-qa-QYn" secondAttribute="leading" id="xg1-pH-Mtj"/>
                         </constraints>
                     </view>
@@ -99,15 +97,15 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="TCj-Yb-4g8" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-866.5" y="1375.5"/>
+            <point key="canvasLocation" x="-1255.7971014492755" y="921.09375"/>
         </scene>
         <!--Slideshow-->
         <scene sceneID="ufC-wZ-h7g">
             <objects>
                 <viewController id="vXZ-lx-hvc" customClass="ViewController" customModule="ImageSlideshow_Example" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="9Cc-VO-3ot"/>
-                        <viewControllerLayoutGuide type="bottom" id="4sc-ux-7cW"/>
+                        <viewControllerLayoutGuide type="top" id="y3L-Ni-tUY"/>
+                        <viewControllerLayoutGuide type="bottom" id="Jxs-gx-DM7"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="kh9-bI-dsS">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
@@ -128,15 +126,15 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-271" y="-162"/>
+            <point key="canvasLocation" x="-392.75362318840581" y="-108.48214285714285"/>
         </scene>
         <!--Container View Controller-->
         <scene sceneID="wOG-vV-nEd">
             <objects>
                 <viewController id="lwS-zi-mGq" customClass="ContainerViewController" customModule="ImageSlideshow_Example" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="w93-wo-T0x"/>
-                        <viewControllerLayoutGuide type="bottom" id="zTX-qa-KnB"/>
+                        <viewControllerLayoutGuide type="top" id="LkR-jQ-kIE"/>
+                        <viewControllerLayoutGuide type="bottom" id="jcX-ho-6Ks"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="gdF-Rl-ocL">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="240"/>
@@ -146,7 +144,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ftQ-Cn-Fc0" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-418" y="1375"/>
+            <point key="canvasLocation" x="-605.79710144927537" y="920.75892857142856"/>
         </scene>
     </scenes>
 </document>
