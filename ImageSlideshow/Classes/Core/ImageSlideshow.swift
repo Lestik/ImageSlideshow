@@ -7,6 +7,27 @@
 
 import UIKit
 
+@objc
+/// The delegate protocol informing about image slideshow state changes
+public protocol ImageSlideshowDelegate: class {
+    /// Tells the delegate that the current page has changed
+    ///
+    /// - Parameters:
+    ///   - imageSlideshow: image slideshow instance
+    ///   - page: new page
+    @objc optional func imageSlideshow(_ imageSlideshow: ImageSlideshow, didChangeCurrentPageTo page: Int)
+
+    /// Tells the delegate that the slideshow will begin dragging
+    ///
+    /// - Parameter imageSlideshow: image slideshow instance
+    @objc optional func imageSlideshowWillBeginDragging(_ imageSlideshow: ImageSlideshow)
+
+    /// Tells the delegate that the slideshow did end decelerating
+    ///
+    /// - Parameter imageSlideshow: image slideshow instance
+    @objc optional func imageSlideshowDidEndDecelerating(_ imageSlideshow: ImageSlideshow)
+}
+
 /** 
     Used to represent position of the Page Control
     - hidden: Page Control is hidden
@@ -105,9 +126,13 @@ open class ImageSlideshow: UIView {
         didSet {
             if oldValue != currentPage {
                 currentPageChanged?(currentPage)
+                delegate?.imageSlideshow?(self, didChangeCurrentPageTo: currentPage)
             }
         }
     }
+
+    /// Delegate called on image slideshow state change
+    open weak var delegate: ImageSlideshowDelegate?
 
     /// Called on each currentPage change
     open var currentPageChanged: ((_ page: Int) -> ())?
@@ -191,6 +216,7 @@ open class ImageSlideshow: UIView {
 
     fileprivate var slideshowTimer: Timer?
     fileprivate var scrollViewImages = [InputSource]()
+    fileprivate var isAnimating: Bool = false
 
     /// Transitioning delegate to manage the transition to full screen controller
     open fileprivate(set) var slideshowTransitioningDelegate: ZoomAnimatedTransitioningDelegate?
@@ -395,6 +421,9 @@ open class ImageSlideshow: UIView {
         if scrollViewPage < scrollViewImages.count {
             scrollView.scrollRectToVisible(CGRect(x: scrollView.frame.size.width * CGFloat(newScrollViewPage), y: 0, width: scrollView.frame.size.width, height: scrollView.frame.size.height), animated: animated)
             setCurrentPageForScrollViewPage(newScrollViewPage)
+            if animated {
+                isAnimating = true
+            }
         }
     }
 
@@ -446,6 +475,15 @@ open class ImageSlideshow: UIView {
         }
     }
 
+    fileprivate func restartTimer() {
+        if slideshowTimer?.isValid != nil {
+            slideshowTimer?.invalidate()
+            slideshowTimer = nil
+        }
+
+        setTimerIfNeeded()
+    }
+
     /// Stops slideshow timer
     open func pauseTimer() {
         slideshowTimer?.invalidate()
@@ -465,6 +503,39 @@ open class ImageSlideshow: UIView {
     @available(*, deprecated, message: "use unpauseTimer instead")
     open func unpauseTimerIfNeeded() {
         unpauseTimer()
+    }
+
+    /**
+     Change the page to the next one
+     - Parameter animated: true if animate the change
+     */
+    open func nextPage(animated: Bool) {
+        if !circular && currentPage == images.count - 1 {
+            return
+        }
+        if isAnimating {
+            return
+        }
+
+        setCurrentPage(currentPage + 1, animated: animated)
+        restartTimer()
+    }
+
+    /**
+     Change the page to the previous one
+     - Parameter animated: true if animate the change
+     */
+    open func previousPage(animated: Bool) {
+        if !circular && currentPage == 0 {
+            return
+        }
+        if isAnimating {
+            return
+        }
+
+        let newPage = scrollViewPage > 0 ? scrollViewPage - 1 : scrollViewImages.count - 3
+        setScrollViewPage(newPage, animated: animated)
+        restartTimer()
     }
 
     /**
@@ -498,31 +569,32 @@ open class ImageSlideshow: UIView {
 extension ImageSlideshow: UIScrollViewDelegate {
 
     open func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        if slideshowTimer?.isValid != nil {
-            slideshowTimer?.invalidate()
-            slideshowTimer = nil
-        }
-
-        setTimerIfNeeded()
+        restartTimer()
         willBeginDragging?()
+        delegate?.imageSlideshowWillBeginDragging?(self)
     }
 
     open func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         setCurrentPageForScrollViewPage(primaryVisiblePage)
         didEndDecelerating?()
+        delegate?.imageSlideshowDidEndDecelerating?(self)
     }
 
     open func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if circular {
+        if circular && (scrollViewImages.count > 1) {
             let regularContentOffset = scrollView.frame.size.width * CGFloat(images.count)
 
             if scrollView.contentOffset.x >= scrollView.frame.size.width * CGFloat(images.count + 1) {
                 scrollView.contentOffset = CGPoint(x: scrollView.contentOffset.x - regularContentOffset, y: 0)
-            } else if scrollView.contentOffset.x < 0 {
+            } else if scrollView.contentOffset.x <= 0 {
                 scrollView.contentOffset = CGPoint(x: scrollView.contentOffset.x + regularContentOffset, y: 0)
             }
         }
 
         pageIndicator?.page = currentPageForScrollViewPage(primaryVisiblePage)
+    }
+
+    public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        isAnimating = false
     }
 }
